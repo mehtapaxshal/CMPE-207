@@ -36,11 +36,13 @@ void video_read(int clientSocket)
 		while(1)
 		{	
 			bytesReceived=recv(clientSocket,buff,sizeof (buff),0);
+			
 			if (bytesReceived < 0) 
 				perror("recv");
 			if (bytesReceived == 0) 
 				break;   
 			printf("The no. of bytes received of n is %d\n",bytesReceived);
+			
 			if(fwrite(buff,1,bytesReceived,fps)!=(size_t) bytesReceived)
 			{
 				perror("fwrite\n");
@@ -51,6 +53,7 @@ void video_read(int clientSocket)
 			flag=1;
 			}
 		}	
+		
 		fclose(fps);
 	}
 
@@ -64,10 +67,10 @@ void VLCservice()
 
 	while(1)
 	{
-	if(flag==1)
-	break;	
-	else		//flag=0;
-	sleep(1);	
+		if(flag==1)
+		break;	
+		else		//flag=0;
+		sleep(1);	
 	}	
 	
 	system("vlc --rate=0.52 --no-playlist-autostart -vvv vod.h264 --tcp-caching =300 vlc://quit");	
@@ -132,11 +135,11 @@ static void video(GtkWidget *widget, gpointer data)
 {
 
 
-			pthread_attr_init(&attr);
-			pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);	
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);	
 
-			pthread_attr_init(&attr1);
-			pthread_attr_setdetachstate(&attr1, PTHREAD_CREATE_JOINABLE);	
+	pthread_attr_init(&attr1);
+	pthread_attr_setdetachstate(&attr1, PTHREAD_CREATE_JOINABLE);	
 
 	send(clientSocket,"C",sizeof(char),0);	
 
@@ -146,8 +149,8 @@ static void video(GtkWidget *widget, gpointer data)
 	if(pthread_create(&thread1, &attr1, (void * (*) (void *))video_read,(int*)clientSocket) < 0)
 		perror("pthread_create error\n");
 	
-pthread_join(thread1,NULL);
-pthread_join(thread,NULL);
+	pthread_join(thread1,NULL);
+	pthread_join(thread,NULL);
 
 }
 
@@ -156,27 +159,27 @@ pthread_join(thread,NULL);
 static void Status(GtkWidget *widget, gpointer data)
 {
 
-     send(clientSocket,"G",sizeof(char),0);  
+	send(clientSocket,"G",sizeof(char),0);  
 
 	GtkWidget *dialog;
 
-    dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,"%s", message);
+	dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,"%s", message);
 
-    gtk_window_set_title(GTK_WINDOW(dialog), "Alert!");
-    gtk_dialog_run(GTK_DIALOG(dialog));
-    gtk_widget_destroy(dialog);*/
+	gtk_window_set_title(GTK_WINDOW(dialog), "Alert!");
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
 	
 
         recv(clientSocket,buffer,sizeof(buffer),0);
         char *message = buffer;
 
-    dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,"%s", message);
+	dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,"%s", message);
 
-    gtk_window_set_title(GTK_WINDOW(dialog), "Status");
-    gtk_dialog_run(GTK_DIALOG(dialog));
-    gtk_widget_destroy(dialog);
+	gtk_window_set_title(GTK_WINDOW(dialog), "Status");
+	gtk_dialog_run(GTK_DIALOG(dialog));
+	gtk_widget_destroy(dialog);
 
-    printf("Server reply: %s\n",buffer);
+	printf("Server reply: %s\n",buffer);
         
 }
 

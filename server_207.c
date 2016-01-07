@@ -23,26 +23,21 @@ FILE* fp;
 /***************Function to Turn on the camera****************/
 
 void cameraOn(void* newSock)
-		{
+{
+	flag=1;
+        printf("start Recording\n");
 			
-
+	system("raspivid -o project.h264 -t 30000");
 			
-			flag=1;
-                        printf("start Recording\n");
-			
-			system("raspivid -o project.h264 -t 30000");
-			
-			printf("Stopped Recording\n");
-			flag=0;
-			pthread_exit(NULL);
-		}
-
+	printf("Stopped Recording\n");
+	flag=0;
+	pthread_exit(NULL);
+}
 
 /***************Function to handle the Electrical appliances and to know current status****************/
 
-
 void DeviceHandle(int newsockfd)
-	{
+{
 	int n;
 	wiringPiSetup ();
 	pinMode (0, OUTPUT) ;
@@ -52,7 +47,7 @@ void DeviceHandle(int newsockfd)
         printf("Command received from client\n");
 	
 	switch(s)
-	{
+{
 
 case 'A':
                 /**********Turning light on*********/
@@ -115,7 +110,6 @@ case 'C':
                 printf("File is closed\n");
 }
                 break;
-
 
 case 'E':
                 /**********Turning Motor on*********/
@@ -200,77 +194,72 @@ case 'G':
 
 }
 	
-
 int main(int argc, char* argv[])
 
 {
 
-int sockfd, newsockfd, portno;
-     socklen_t clilen;
-int n;
-struct sockaddr_in serv_addr, cli_addr;
+	int sockfd, newsockfd, portno;
+	socklen_t clilen;
+	int n;
+	struct sockaddr_in serv_addr, cli_addr;
 
-pthread_t thread1;
-pthread_attr_t attr1;
-pthread_attr_init(&attr1);
-pthread_attr_setdetachstate(&attr1,PTHREAD_CREATE_JOINABLE);    
+	pthread_t thread1;
+	pthread_attr_t attr1;
+	pthread_attr_init(&attr1);
+	pthread_attr_setdetachstate(&attr1,PTHREAD_CREATE_JOINABLE);    
 
+	if (argc < 2) 
+	{
+         	printf("ERROR, You have entered wrong Input.Please try again...\n");
+         	exit(1);
+	}
 
-     if (argc < 2) 
-     {
-         printf("ERROR, You have entered wrong Input.Please try again...\n");
-         exit(1);
-     }
+/********Socket*********/
 
-     /********Socket*********/
+     	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+     	if (sockfd < 0)
+     	printf("ERROR in opening socket");
 
-     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-     if (sockfd < 0)
-     printf("ERROR in opening socket");
+     	bzero((char *) &serv_addr, sizeof(serv_addr));
+     	portno = atoi(argv[1]);
+     	serv_addr.sin_family = AF_INET;
+     	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+     	serv_addr.sin_port = htons(portno);
 
-     bzero((char *) &serv_addr, sizeof(serv_addr));
-     portno = atoi(argv[1]);
-     serv_addr.sin_family = AF_INET;
-     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-     serv_addr.sin_port = htons(portno);
+/********Binding*********/
 
-     /********Binding*********/
+     	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+        printf("ERROR in binding Socket");
 
-     if (bind(sockfd, (struct sockaddr *) &serv_addr,
-              sizeof(serv_addr)) < 0)
-              printf("ERROR in binding Socket");
 /********Listen*********/
 
 
-     if((listen(sockfd,MAX_CLIENTS))==ERROR)
-     {
+     	if((listen(sockfd,MAX_CLIENTS))==ERROR)
+     	{
              perror("Error in Listen:");
              exit(-1);
 
-     }
+     	}
 
 
-     clilen = sizeof(cli_addr);
-     printf("Server is Listening...\n");
-while(1)
-{ 
+     	clilen = sizeof(cli_addr);
+     	printf("Server is Listening...\n");
+	while(1)
+	{ 
 
-    /********Accept*********/
+    	/********Accept*********/
 
-    if((newsockfd = accept(sockfd,(struct sockaddr*)&cli_addr,&clilen))==ERROR)
+    	if((newsockfd = accept(sockfd,(struct sockaddr*)&cli_addr,&clilen))==ERROR)
 
         {
                 perror("Error in Accept:");
                 exit(-1);
         }
-
-
-
-   
+ 
         if(pthread_create(&thread1,&attr1,(void *(*)(void *))DeviceHandle,(int*)newsockfd)<0)
-		{
+	{
 			perror("pthread_create error\n");
-		} 
+	} 
 		
 }
      close(newsockfd);
